@@ -18,8 +18,8 @@ import pymongo
 import logging
 import os
 import pickle
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 USERINFO = {}  # holds user information
 CAPTCHA_DATA = {}
 # %% ENV VARIABLES
