@@ -18,6 +18,7 @@ import pymongo
 import logging
 import os
 import pickle
+import re
 # from dotenv import load_dotenv
 # load_dotenv()
 USERINFO = {}  # holds user information
@@ -74,7 +75,7 @@ dispatcher = updater.dispatcher
 
 # %% Message Strings
 if(COIN_PRICE == "0"):
-    SYMBOL = ""
+    SYMBOL = f"Coming soon - 100% Presale LP"
 else:
     SYMBOL = f"\n⭐️ 1 {COIN_SYMBOL} = {COIN_PRICE}"
 if(EXPLORER_URL != ""):
@@ -98,9 +99,10 @@ PROCEED_MESSAGE = f"""
 📢 Airdrop Rules
 
 ✏️ Mandatory Tasks:
-- Join our Telegram group(s)
-- Follow our Twitter page(s)
-- Join our Discord server(s)
+- Join our Telegram group
+- Follow our Twitter page
+- Like + rt pinned tweet
++ Extra bonus tag some frens!
 
 NOTE: Users found cheating would be disqualified & banned immediately.
 
@@ -109,17 +111,19 @@ Airdrop Date: *{AIRDROP_DATE}*{EXPLORER_URL}
 """
 
 MAKE_SURE_TELEGRAM = f"""
-🔹 Do not forget to join our Telegram group(s)
+🔹 Do not forget to join our Telegram
 {TELEGRAM_LINKS}
 """
 
 FOLLOW_TWITTER_TEXT = f"""
-🔹 Follow our Twitter page(s)
+🔹 Follow our Twitter
+🔹 Like + rt pinned
+🔹 Tag frens
 {TWITTER_LINKS}
 """
 
 JOIN_DISCORD_TEXT = f'''
-🔹 Join our Discord server(s)
+🔹 Join our Discord server
 {DISCORD_LINKS}
 '''
 
@@ -129,7 +133,7 @@ Type in *your Wallet Address*
 Please make sure your wallet supports the *{AIRDROP_NETWORK}*
 
 Example:
-0xdEAD000000000000000042069420694206942069
+Bu11y4ShQCh2EV4w4FYE5Rnpe8ymcbRwsX13Cknp2tKK
 
 _Incorrect Details? Use_ /restart _command to start over._
 """
@@ -140,6 +144,7 @@ Rewards would be sent out automatically to your {AIRDROP_NETWORK} address on the
 
 Don't forget to:
 🔸 Stay in the telegram channels
+🔸 Stay active in our telegram chat army
 🔸 Follow all the social media channels for the updates
 
 Your personal referral link (+{"{:,.2f}".format(REFERRAL_REWARD)} {COIN_SYMBOL} for each referral)
@@ -317,20 +322,40 @@ def submit_address(update, context):
     ))
     return SUBMIT_ADDRESS
 
+import re
+
 def submit_discord(update, context):
     user = update.message.from_user
     if not user.id in USERINFO:
         return startAgain(update, context)
-    if users.find({"discord_username": update.message.text.strip()}).count() != 0:
-        update.message.reply_text(text="Discord Username Already Exists. Try again!\n\nExample: \nExample#1234", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+    
+    discord_username = update.message.text.strip()
+    # Validate the format of the Discord username using regular expressions
+    if not re.match(r"^[a-zA-Z0-9_.]{2,32}$", discord_username):
+        update.message.reply_text(text="Invalid Discord Username format. It should be 2-32 characters long and only contain letters (a-z), numbers (0-9), underscores (_), and dots (.). Try again!", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
             [["Cancel"],["/restart"]]
         ))
         return SUBMIT_ADDRESS
-    USERINFO[user.id].update({"discord_username": update.message.text.strip()})
+    
+    # Check for consecutive dots in the username
+    if ".." in discord_username:
+        update.message.reply_text(text="Invalid Discord Username format. It should not contain two consecutive dots (..). Try again!", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+            [["Cancel"],["/restart"]]
+        ))
+        return SUBMIT_ADDRESS
+    
+    if users.find({"discord_username": discord_username}).count() != 0:
+        update.message.reply_text(text="Discord Username Already Exists. Try again!\n\nExample: \nmyNiceNick", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+            [["Cancel"],["/restart"]]
+        ))
+        return SUBMIT_ADDRESS
+    
+    USERINFO[user.id].update({"discord_username": discord_username})
     update.message.reply_text(text=SUBMIT_BEP20_TEXT, parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
         [["Cancel"],["/restart"]]
     ))
     return END_CONVERSATION
+
 
 
 def getName(user):
