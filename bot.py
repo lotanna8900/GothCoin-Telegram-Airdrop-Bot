@@ -537,7 +537,7 @@ states = {
     SUBMIT_ADDRESS: [cancelHandler, MessageHandler(Filters.regex('^[a-zA-Z0-9_\.]+$'), submit_discord), reset_handler, MessageHandler(Filters.regex(".*"), error_discord)],
 
     # END_CONVERSATION: [cancelHandler, MessageHandler(Filters.regex('^0x[a-fA-F0-9]{40}$'), end_conversation),reset_handler,MessageHandler(Filters.regex(".*"),error_bsc)],
-    END_CONVERSATION: [cancelHandler, MessageHandler(Filters.regex('^(?!0x)[a-zA-Z0-9]{1,44}$'), end_conversation), reset_handler, MessageHandler(Filters.regex(".*"), error_bsc)],
+    END_CONVERSATION: [cancelHandler, MessageHandler(Filters.regex('^(?!0x)[a-zA-Z0-9]{32,44}$'), end_conversation), reset_handler, MessageHandler(Filters.regex(".*"), error_bsc)],
 
     LOOP: [reset_handler,MessageHandler(
         Filters.text, loopAnswer
