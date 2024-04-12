@@ -18,7 +18,6 @@ import pymongo
 import logging
 import os
 import pickle
-import re
 # from dotenv import load_dotenv
 # load_dotenv()
 USERINFO = {}  # holds user information
@@ -75,7 +74,7 @@ dispatcher = updater.dispatcher
 
 # %% Message Strings
 if(COIN_PRICE == "0"):
-    SYMBOL = f"Coming soon - 100% Presale LP"
+    SYMBOL = ""
 else:
     SYMBOL = f"\n⭐️ 1 {COIN_SYMBOL} = {COIN_PRICE}"
 if(EXPLORER_URL != ""):
@@ -99,10 +98,10 @@ PROCEED_MESSAGE = f"""
 📢 Airdrop Rules
 
 ✏️ Mandatory Tasks:
-- Join our Telegram group
-- Follow our Twitter page
-- Like + rt pinned tweet
-+ Extra bonus tag some frens!
+- Join our Telegram
+- Follow our X Twitter
+- Like + RT our 📌 X tweet
+- Join our Discord (optional)
 
 NOTE: Users found cheating would be disqualified & banned immediately.
 
@@ -111,19 +110,18 @@ Airdrop Date: *{AIRDROP_DATE}*{EXPLORER_URL}
 """
 
 MAKE_SURE_TELEGRAM = f"""
-🔹 Do not forget to join our Telegram
+🔹 First task - Do not forget to join our Telegram group(s)
 {TELEGRAM_LINKS}
 """
 
 FOLLOW_TWITTER_TEXT = f"""
 🔹 Follow our Twitter
-🔹 Like + rt pinned
-🔹 Tag frens
+🔹 Like + RT our 📌 X tweet
 {TWITTER_LINKS}
 """
 
 JOIN_DISCORD_TEXT = f'''
-🔹 Join our Discord server
+🔹 Join our Discord
 {DISCORD_LINKS}
 '''
 
@@ -133,7 +131,7 @@ Type in *your Wallet Address*
 Please make sure your wallet supports the *{AIRDROP_NETWORK}*
 
 Example:
-Bu11y4ShQCh2EV4w4FYE5Rnpe8ymcbRwsX13Cknp2tKK
+Bullies4ShQCh2EV4w4FYE5Rnpe8ymcbRwsX13Cknp2tKK
 
 _Incorrect Details? Use_ /restart _command to start over._
 """
@@ -144,7 +142,7 @@ Rewards would be sent out automatically to your {AIRDROP_NETWORK} address on the
 
 Don't forget to:
 🔸 Stay in the telegram channels
-🔸 Stay active in our telegram chat army
+🔸 Extra bonus if you stay active on telegram/discord
 🔸 Follow all the social media channels for the updates
 
 Your personal referral link (+{"{:,.2f}".format(REFERRAL_REWARD)} {COIN_SYMBOL} for each referral)
@@ -262,7 +260,7 @@ def generateCaptcha(update, context):
     image.save(filename, "png")
     photo = open(filename, "rb")
     update.message.reply_photo(photo)
-    update.message.reply_text("Please type in the numbers on the image",reply_markup=ReplyKeyboardRemove())
+    update.message.reply_text("Type in the numbers on the image mfer",reply_markup=ReplyKeyboardRemove())
     return CAPTCHASTATE
 
 
@@ -317,45 +315,25 @@ def submit_address(update, context):
         return JOIN_DISCORD
     USERINFO[user.id].update({"twitter_username": update.message.text.strip()})
     update.message.reply_text(text=JOIN_DISCORD_TEXT, parse_mode=telegram.ParseMode.MARKDOWN)
-    update.message.reply_text(text="Type in *your Discord username* to proceed.\n\nExample: \nExample#1234 \n\n_Incorrect Details? Use_ /restart _command to start over._", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+    update.message.reply_text(text="Type in *your Discord username* to proceed.\n\nExample: \nMydiscordUser \n\n_Incorrect Details? Use_ /restart _command to start over._", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
         [["Cancel"],["/restart"]]
     ))
     return SUBMIT_ADDRESS
-
-import re
 
 def submit_discord(update, context):
     user = update.message.from_user
     if not user.id in USERINFO:
         return startAgain(update, context)
-    
-    discord_username = update.message.text.strip()
-    # Validate the format of the Discord username using regular expressions
-    if not re.match(r"^[a-zA-Z0-9_.]{2,32}$", discord_username):
-        update.message.reply_text(text="Invalid Discord Username format. It should be 2-32 characters long and only contain letters (a-z), numbers (0-9), underscores (_), and dots (.). Try again!", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+    if users.find({"discord_username": update.message.text.strip()}).count() != 0:
+        update.message.reply_text(text="Discord Username Already Exists. Try again!\n\nExample: \nMydiscordUse", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
             [["Cancel"],["/restart"]]
         ))
         return SUBMIT_ADDRESS
-    
-    # Check for consecutive dots in the username
-    if ".." in discord_username:
-        update.message.reply_text(text="Invalid Discord Username format. It should not contain two consecutive dots (..). Try again!", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
-            [["Cancel"],["/restart"]]
-        ))
-        return SUBMIT_ADDRESS
-    
-    if users.find({"discord_username": discord_username}).count() != 0:
-        update.message.reply_text(text="Discord Username Already Exists. Try again!\n\nExample: \nmyNiceNick", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
-            [["Cancel"],["/restart"]]
-        ))
-        return SUBMIT_ADDRESS
-    
-    USERINFO[user.id].update({"discord_username": discord_username})
+    USERINFO[user.id].update({"discord_username": update.message.text.strip()})
     update.message.reply_text(text=SUBMIT_BEP20_TEXT, parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
         [["Cancel"],["/restart"]]
     ))
     return END_CONVERSATION
-
 
 
 def getName(user):
@@ -373,7 +351,7 @@ def end_conversation(update, context):
     if not user.id in USERINFO:
         return startAgain(update, context)
     if users.find({"bep20": update.message.text}).count() != 0:
-        update.message.reply_text(text="Wallet Address Already Exists. Try again!\n\nExample: \n0xdEAD000000000000000042069420694206942069", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+        update.message.reply_text(text="Wallet Address Already Exists. Try again!\n\nExample: \nBullies4ShQCh2EV4w4FYE5Rnpe8ymcbRwsX13Cknp2tKK", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
         [["Cancel"],["/restart"]]
     ))
         return END_CONVERSATION
@@ -524,13 +502,13 @@ def error_twitter(update,context):
     return JOIN_DISCORD
 
 def error_discord(update,context):
-    update.message.reply_text(text="Invalid Discord Username. Try again!\n\nExample: \nExample#1234", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+    update.message.reply_text(text="Invalid Discord Username. Try again!\n\nExample: \nMydiscordUser", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
         [["Cancel"],["/restart"]]
     ))
     return SUBMIT_ADDRESS
 
 def error_bsc(update,context):
-    update.message.reply_text(text="Invalid Wallet Address. Try again!\n\nExample: \n0xdEAD000000000000000042069420694206942069", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
+    update.message.reply_text(text="Invalid Wallet Address. Try again!\n\nExample: \nBullies4ShQCh2EV4w4FYE5Rnpe8ymcbRwsX13Cknp2tKK", parse_mode=telegram.ParseMode.MARKDOWN, reply_markup=ReplyKeyboardMarkup(
         [["Cancel"],["/restart"]]
     ))
     return END_CONVERSATION
@@ -555,7 +533,9 @@ states = {
     FOLLOW_TELEGRAM: [MessageHandler(Filters.regex('^Submit Details$'), follow_telegram), cancelHandler,reset_handler, MessageHandler(Filters.regex(".*"),error_submitdetails)],
     FOLLOW_TWITTER: [MessageHandler(Filters.regex('^Done$'), follow_twitter), cancelHandler,reset_handler, MessageHandler(Filters.regex(".*"),error_telegram)],
     JOIN_DISCORD : [cancelHandler,MessageHandler(Filters.regex('^https://twitter.com/.*'), submit_address),reset_handler,MessageHandler(Filters.regex(".*"),error_twitter)],
-    SUBMIT_ADDRESS: [cancelHandler, MessageHandler(Filters.regex('^.*#[0-9]{4}$'), submit_discord),reset_handler,MessageHandler(Filters.regex(".*"),error_discord)],
+    # SUBMIT_ADDRESS: [cancelHandler, MessageHandler(Filters.regex('^.*#[0-9]{4}$'), submit_discord),reset_handler,MessageHandler(Filters.regex(".*"),error_discord)],
+    SUBMIT_ADDRESS: [cancelHandler, MessageHandler(Filters.regex('^[a-zA-Z0-9_\.]+$'), submit_discord), reset_handler, MessageHandler(Filters.regex(".*"), error_discord)],
+
     END_CONVERSATION: [cancelHandler, MessageHandler(Filters.regex('^0x[a-fA-F0-9]{40}$'), end_conversation),reset_handler,MessageHandler(Filters.regex(".*"),error_bsc)],
     LOOP: [reset_handler,MessageHandler(
         Filters.text, loopAnswer
