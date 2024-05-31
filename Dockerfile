@@ -1,4 +1,4 @@
-FROM python:3.7-alpine
+FROM python:3.11.8-alpine
 
 RUN apk add --no-cache gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev openssl-dev
 WORKDIR /app
